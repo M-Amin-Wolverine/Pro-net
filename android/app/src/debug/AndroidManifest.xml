@@ -1,7 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:dist="http://schemas.android.com/apk/distribution"
 
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    package="com.zeynoth_vpn.meshvpn"               <!-- حتماً تغییر دهید -->
 
-    <application android:usesCleartextTraffic="true" android:fullBackupContent="@xml/secure_store_backup_rules" tools:targetApi="28" tools:ignore="GoogleAppIndexingWarning" tools:replace="android:fullBackupContent" />
+    android:versionCode="100"
+    android:versionName="1.0.0"
+
+    android:installLocation="auto"
+    android:compileSdkVersion="36"
+    android:targetSdkVersion="36"                    <!-- Android 16 – آینده‌نگرانه تا ۲۰۲۷+ -->
+
+    tools:targetApi="36">
+
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         PERMISSIONS – فقط موارد واقعاً لازم + نسخه‌های محدود شده
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+    <!-- Core Network & VPN – همیشه لازم -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_MULTICAST_STATE" />
+
+    <!-- VPN Service – هسته اصلی اپ -->
+    <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+
+    <!-- Mesh Discovery – محلی (Wi-Fi / BT / Nearby) -->
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
+        tools:targetApi="33"
+        tools:ignore="NearbyWifiDevicesPermission" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_AWARE"
+        tools:targetApi="33" />                     <!-- Wi-Fi Aware (NAN) -->
+
+    <!-- Location – فقط برای Wi-Fi Direct/Aware/Bluetooth mesh (foreground) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="34" />               <!-- از 35+ معمولاً نیاز نیست -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="34" />
+
+    <!-- **حذف شده یا محدود شده برای جلوگیری از reject** -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
+    <!-- <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> -->
+    <!-- <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" /> -->
+
+    <!-- Bluetooth Mesh / LE -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"
+        tools:targetApi="31" />
+
+    <!-- Wi-Fi Direct / P2P -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_DIRECT_PEERS" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_DIRECT_PEERS" />
+
+    <!-- Foreground Services & Wake -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
+        tools:targetApi="34" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:targetApi="34" />                     <!-- برای routing سنگین -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Overlay برای نمایش وضعیت مش / گراف نودها -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Notifications (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
+    <!-- اختیاری – اگر NFC pairing یا camera (QR) دارید -->
+    <uses-permission android:name="android.permission.NFC"
+        android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA"
+        android:required="false" />
+
+    <!-- Push (اگر FCM یا مشابه دارید) -->
+    <!-- <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" /> -->
+
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         FEATURES – بیشتر optional برای کاهش ریسک reject
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+    <uses-feature android:name="android.software.vpn"
+        android:required="true" />
+
+    <uses-feature android:name="android.hardware.wifi.direct"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.wifi.aware"
+        android:required="false"
+        tools:targetApi="26" />
+    <uses-feature android:name="android.hardware.bluetooth_le"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.nfc"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.camera"
+        android:required="false" />
+
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         APPLICATION
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+    <application
+
+        android:name=".MeshVPNApplication"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/vpn_backup_rules"
+        android:dataExtractionRules="@xml/vpn_data_extraction_rules"
+        android:backupAgent=".backup.VPNBackupAgent"
+
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MeshVPN"
+
+        android:usesCleartextTraffic="false"                     <!-- اجباری برای VPN -->
+        android:networkSecurityConfig="@xml/vpn_network_security_config"
+
+        android:requestLegacyExternalStorage="false"
+        android:directBootAware="true"
+        android:persistent="false"
+        android:hardwareAccelerated="true"
+        android:enableOnBackInvokedCallback="true"               <!-- Android 13+ -->
+        android:resizeableActivity="true"                        <!-- Android 16 large screens -->
+
+        tools:targetApi="36"
+        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute,AllowBackup"
+        tools:replace="android:fullBackupContent,android:allowBackup">
+
+
+        <!-- VPN SERVICE – هسته اصلی -->
+        <service
+            android:name=".vpn.MeshVPNService"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:exported="true"
+            android:enabled="true"
+            android:foregroundServiceType="connectedDevice|dataSync"
+            android:isolatedProcess="true">                      <!-- امنیت بالاتر -->
+
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+
+            <!-- Very important for always-on & lockdown -->
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="true" />
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_LOCKDOWN"
+                android:value="true" />
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_BYPASS"
+                android:value="true" />
+        </service>
+
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".ui.MainControlActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode"
+            android:windowSoftInputMode="adjustResize"
+            android:enableEdgeToEdge="true">                     <!-- Android 16+ -->
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep link / Custom scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="meshvpn" android:host="connect" />
+            </intent-filter>
+        </activity>
+
+
+        <!-- Quick Settings Tile -->
+        <service
+            android:name=".vpn.MeshVpnTileService"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:label="@string/tile_vpn_mesh"
+            android:icon="@drawable/ic_vpn_tile"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+
+        <!-- Mesh & P2P Services -->
+        <service
+            android:name=".mesh.MeshDiscoveryService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|dataSync"
+            android:stopWithTask="false" />
+
+        <service
+            android:name=".p2p.P2PConnectionService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|dataSync" />
+
+
+        <!-- Receivers مهم -->
+        <receiver
+            android:name=".mesh.WifiDirectReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.net.wifi.p2p.STATE_CHANGED" />
+                <action android:name="android.net.wifi.p2p.PEERS_CHANGED" />
+                <action android:name="android.net.wifi.p2p.CONNECTION_STATE_CHANGE" />
+                <action android:name="android.net.wifi.p2p.THIS_DEVICE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".vpn.VpnStateReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+
+        <!-- FileProvider – برای export/import کانفیگ -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+
+        <!-- WorkManager / Startup -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
+
+        <!-- Meta-data اضافی برای mesh / protocol -->
+        <meta-data
+            android:name="mesh_network_protocol"
+            android:value="custom" />  <!-- یا BATMAN / OLSR / Yggdrasil -->
+        <meta-data
+            android:name="mesh_encryption"
+            android:value="AES-256-GCM" />
+
+    </application>
+
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         QUERIES – Package visibility (Android 11+)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+    <queries>
+        <!-- اپ‌های مشابه برای interoperability -->
+        <package android:name="org.disaster.radio.mesh" />
+        <package android:name="com.briarproject.briar" />
+        <package android:name="com.mysterium.network" />
+
+        <!-- تنظیمات سیستم -->
+        <intent>
+            <action android:name="android.settings.VPN_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.WIFI_DIRECT_SETTINGS" />
+        </intent>
+
+        <!-- عمومی -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
 </manifest>
