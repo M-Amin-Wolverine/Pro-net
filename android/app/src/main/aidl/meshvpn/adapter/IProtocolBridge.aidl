@@ -8,175 +8,177 @@ import meshvpn.core.MeshPeer;
  * پل ارتباطی بین پروتکل‌های مختلف VPN و شبکه Mesh
  * قابلیت تبدیل هر پروتکل به فرمت Mesh و بالعکس
  */
-interface IProtocolBridge {
-    
-    // ==================== تبدیل پروتکل‌ها به Mesh ====================
-    
-    /**
-     * تبدیل کانفیگ WireGuard به Node Mesh
-     */
-    Bundle wireGuardToMesh(in String wgConfig, in String peerName);
-    
-    /**
-     * تبدیل کانفیگ OpenVPN به Node Mesh
-     */
-    Bundle openVpnToMesh(in String ovpnConfig, in Bundle options);
-    
-    /**
-     * تبدیل کانفیگ Shadowsocks به Node Mesh
-     */
-    Bundle shadowsocksToMesh(in String ssConfig, in boolean obfuscate);
-    
-    /**
-     * تبدیل کانفیگ V2Ray/Xray به Node Mesh
-     */
-    Bundle v2rayToMesh(in String v2rayConfig, in int protocolType);
-    
-    /**
-     * تبدیل کانفیگ Trojan به Node Mesh
-     */
-    Bundle trojanToMesh(in String trojanConfig, in String serverName);
-    
-    /**
-     * تبدیل کانفیگ Psiphon به Node Mesh
-     */
-    Bundle psiphonToMesh(in Bundle psiphonState, in String region);
-    
-    // ==================== تبدیل Mesh به پروتکل‌ها ====================
-    
-    /**
-     * تبدیل Node Mesh به کانفیگ WireGuard
-     */
-    String meshToWireGuard(in MeshPeer peer, in String privateKey);
-    
-    /**
-     * تبدیل Node Mesh به کانفیگ OpenVPN
-     */
-    String meshToOpenVpn(in MeshPeer peer, in Bundle authParams);
-    
-    /**
-     * تبدیل Node Mesh به کانفیگ Shadowsocks
-     */
-    Bundle meshToShadowsocks(in MeshPeer peer, in String encryption);
-    
-    // ==================== حالت‌های ترکیبی ====================
-    
-    /**
-     * ایجاد زنجیره پروتکل‌ها (Multi-hop)
-     * مثال: WireGuard → Tor → Psiphon
-     */
-    Bundle createProtocolChain(in String[] protocols, in Bundle[] configs);
-    
-    /**
-     * فعال کردن حالت Fallback خودکار
-     * اگر یک پروتکل کار نکرد، به صورت خودکار به پروتکل بعدی سوئیچ کند
-     */
-    boolean enableAutoFallback(in String[] fallbackChain);
-    
-    /**
-     * تست ترکیب پروتکل‌ها برای بهترین عملکرد
-     */
-    Bundle testProtocolCombination(in String[] protocols, in String targetServer);
-    
-    // ==================== مدیریت اتصالات چندگانه ====================
-    
-    /**
-     * فعال کردن Multipath (اتصال همزمان به چند پروتکل)
-     */
-    boolean enableMultipath(in String[] activeProtocols, in Bundle loadBalancingConfig);
-    
-    /**
-     * تقسیم ترافیک بین پروتکل‌های مختلف
-     */
+/**
+ * Ultimate Adaptive Protocol Bridge
+ * ---------------------------------
+ * Next‑Gen Anti‑Censorship / Mesh / VPN / Obfuscation Platform
+ * Single‑file expanded interface (God Mode)
+ */
+
+interface IGodProtocolBridge {
+
+    // =========================================================
+    // 🌐 Network Context & Intelligence
+    // =========================================================
+
+    Bundle collectNetworkContext();
+    Bundle detectCensorshipCapabilities(in Bundle networkContext);
+    String detectFilteringType(in Bundle networkContext); 
+    int estimateDpiAggressiveness(in Bundle networkContext);
+
+    // =========================================================
+    // 🧠 AI / Decision / Policy Engine
+    // =========================================================
+
+    Bundle recommendBestProtocol(in Bundle networkContext);
+    Bundle recommendBestChain(in Bundle networkContext);
+
+    void learnFromConnectionResult(in Bundle result);
+    void updateDecisionPolicy(in Bundle policy);
+    void resetLearningModel();
+
+    // =========================================================
+    // 🔌 Protocol Abstraction Layer
+    // =========================================================
+
+    Bundle protocolToMesh(in String protocol, in Bundle config);
+    Bundle meshToProtocol(in String protocol, in MeshPeer peer, in Bundle params);
+
+    Bundle bootstrapProtocol(in String protocol, in Bundle context);
+    Bundle adaptProtocolRuntime(in String protocol, in Bundle liveMetrics);
+
+    boolean protocolSupportsChaining(in String protocol);
+    boolean protocolSupportsMultipath(in String protocol);
+    boolean protocolSupportsDpiEvasion(in String protocol);
+
+    // =========================================================
+    // 🔗 Adaptive Chain Engine (Hot‑Swappable)
+    // =========================================================
+
+    String createAdaptiveChain(in Bundle chainPolicy);
+
+    boolean addChainHop(
+        in String chainId,
+        in String protocol,
+        in Bundle config,
+        in int position
+    );
+
+    boolean removeChainHop(in String chainId, in String protocol);
+
+    boolean hotSwapProtocol(
+        in String chainId,
+        in String fromProtocol,
+        in String toProtocol,
+        in Bundle newConfig
+    );
+
+    Bundle getLiveChainStatus(in String chainId);
+
+    // =========================================================
+    // 🕸️ Mesh / Global Routing
+    // =========================================================
+
+    Bundle registerMeshNode(in Bundle nodeProfile);
+    Bundle discoverMeshNodes(in Bundle discoveryContext);
+
+    Bundle computeOptimalMeshRoute(in Bundle meshContext);
+    boolean rebalanceMeshTraffic(in Bundle rebalancePolicy);
+
+    // =========================================================
+    // 🧬 Psiphon / Tor / Restricted Network Bypass
+    // =========================================================
+
+    Bundle createMeshPsiphonChain(in Bundle chainConfig);
+    Bundle obfuscateMeshViaPsiphon(in Bundle meshTraffic, in Bundle obfuscationConfig);
+
+    Bundle discoverMeshViaPsiphon(in Bundle discoveryRequest);
+    boolean migrateFromPsiphonToDirectMesh();
+
+    // =========================================================
+    // 🛡️ Obfuscation & DPI Evasion Engine
+    // =========================================================
+
+    Bundle applyObfuscationLayer(
+        in Bundle traffic,
+        in String method,
+        in Bundle params
+    );
+
+    Bundle applyMultiLayerObfuscation(
+        in Bundle traffic,
+        in Bundle obfuscationProfile
+    );
+
+    Bundle randomizeTrafficFingerprint(in Bundle traffic);
+    int evaluateDpiResistance(in Bundle traffic);
+
+    // =========================================================
+    // 🔀 Multipath / Traffic Engineering
+    // =========================================================
+
+    boolean enableMultipath(
+        in String[] protocols,
+        in Bundle loadBalancingPolicy
+    );
+
     Bundle splitTraffic(in Bundle trafficRules);
-    
-    /**
-     * مانیتورینگ کیفیت هر پروتکل
-     */
-    Bundle getProtocolQualityMetrics(in String protocolName, in int durationSeconds);
-    
-    // ==================== کشف و سازگاری ====================
-    
-    /**
-     * کشف خودکار پروتکل‌های قابل استفاده در شبکه فعلی
-     */
-    String[] detectAvailableProtocols(in Bundle networkInfo);
-    
-    /**
-     * تشخیص بهترین پروتکل برای شبکه/موقعیت فعلی
-     */
-    String recommendBestProtocol(in Bundle context);
-    
-    /**
-     * بهینه‌سازی خودکار پروتکل بر اساس شرایط
-     */
-    Bundle autoOptimizeProtocol(in String protocol, in Bundle currentMetrics);
-    
-    // ==================== امنیت و مبهم‌سازی ====================
-    
-    /**
-     * چرخش پروتکل برای جلوگیری از شناسایی
-     */
-    void rotateProtocols(in int intervalMinutes, in boolean randomize);
-    
-    /**
-     * اضافه کردن لایه مبهم‌سازی به پروتکل
-     */
-    Bundle addObfuscationLayer(in String baseProtocol, in String obfuscationMethod);
-    
-    /**
-     * تست مقاومت پروتکل در برابر DPI
-     */
-    Bundle testDpiResistance(in String protocol, in String testServer);
-    
-    // ==================== آمار و گزارش ====================
-    
-    /**
-     * دریافت آمار استفاده از هر پروتکل
-     */
-    Bundle getProtocolUsageStats(in int timeframeDays);
-    
-    /**
-     * گزارش مقایسه عملکرد پروتکل‌ها
-     */
-    Bundle compareProtocols(in String[] protocols, in String testCriteria);
-    
-    /**
-     * لاگ‌گیری جامع از عملکرد Bridge
-     */
-    Bundle getBridgeLogs(in int logLevel, in int maxEntries);
-    
-    // ==================== مدیریت پیکربندی ====================
-    
-    /**
-     * ذخیره پروفایل ترکیبی پروتکل‌ها
-     */
-    boolean saveProtocolProfile(in String profileName, in Bundle profileConfig);
-    
-    /**
-     * بارگیری پروفایل ذخیره شده
-     */
-    Bundle loadProtocolProfile(in String profileName);
-    
-    /**
-     * همگام‌سازی پروفایل‌ها بین دستگاه‌ها
-     */
-    boolean syncProfiles(in String syncToken, in Bundle profiles);
-    
-    // ==================== API سطح پایین ====================
-    
-    /**
-     * اجرای دستور مستقیم روی پروتکل
-     */
-    Bundle executeProtocolCommand(in String protocol, in String command, in Bundle params);
-    
-    /**
-     * دیباگ زنده پروتکل
-     */
-    Bundle debugProtocol(in String protocol, in boolean enableLiveLog);
-    
-    /**
-     * ریست تنظیمات پروتکل به حالت پیش‌فرض
-     */
+    Bundle mergeTraffic(in Bundle trafficState);
+
+    // =========================================================
+    // 🔁 Auto‑Fallback & Self‑Healing
+    // =========================================================
+
+    boolean enableAutoFallback(in String[] fallbackChain);
+    boolean triggerEmergencyFallback();
+
+    Bundle selfHealConnection(in Bundle failureContext);
+
+    // =========================================================
+    // 📊 Telemetry / Monitoring / Health
+    // =========================================================
+
+    Bundle collectLiveMetrics(in Bundle metricFilter);
+    Bundle computeHealthScore(in String chainId);
+
+    Bundle detectTrafficAnomalies();
+    Bundle exportTelemetry(in String target);
+
+    // =========================================================
+    // 📦 Profiles = Strategic Loadouts
+    // =========================================================
+
+    boolean saveStrategicProfile(in String name, in Bundle profile);
+    Bundle loadStrategicProfile(in String name);
+
+    Bundle autoSelectProfile(in Bundle networkContext);
+    boolean syncProfilesEncrypted(in Bundle syncChannel);
+
+    // =========================================================
+    // 🧪 Simulation / Testing / Prediction
+    // =========================================================
+
+    Bundle simulateProtocol(in String protocol, in Bundle simulationParams);
+    Bundle simulateChain(in Bundle chainDefinition);
+
+    Bundle predictConnectionStability(in Bundle context);
+    Bundle testDpiResistance(in String protocol, in String testTarget);
+
+    // =========================================================
+    // ⚙️ Low‑Level Control / Debug / Hooks
+    // =========================================================
+
+    Bundle executeProtocolCommand(
+        in String protocol,
+        in String command,
+        in Bundle params
+    );
+
+    void registerRuntimeHook(in String event, in Bundle script);
+    void enableLiveDebug(in int debugLevel);
+
     boolean resetProtocol(in String protocol);
+    boolean shutdownAll();
+
 }
+
